@@ -22,6 +22,8 @@ Authen::NTLM - An NTLM authentication module
     $imap->authenticate("NTLM", Authen::NTLM::ntlm);
     :
     $imap->logout;
+    ntlm_reset;
+    :
 
 =head1 DESCRIPTION
 
@@ -41,19 +43,46 @@ Authen::NTLM - An NTLM authentication module
 
 =over 4
 
+=item ntlm_domain()
+
+    Set the domain to use in the NTLM authentication messages.
+    Returns the new domain.  Without an argument, this function
+    returns the current domain entry.
+
 =item ntlm_user()
 
     Set the username to use in the NTLM authentication messages.
+    Returns the new username.  Without an argument, this function
+    returns the current username entry.
 
 =item ntlm_passwd()
 
     Set the password to use in the NTLM authentication messages.
+    Returns the new password.  Without an argument, this function
+    returns the current password entry.
+
+=item ntlm_reset()
+
+    Resets the NTLM challenge/response state machine so that the next
+    call to C<ntlm()> will produce an initial connect message.
 
 =item ntlm()
 
     Generate a reply to a challenge.  The NTLM protocol involves an
     initial empty challenge from the server requiring a message
-    containing the username
+    response containing the username and domain (which may be empty).
+    The first call to C<ntlm()> generates this first message ignoring
+    any arguments.
+
+    The second time it is called, it is assumend that the argument is
+    the challenge string sent from the server.  This will contain 8
+    bytes of data which are used in the DES functions to generate the
+    response authentication strings.  The result of the call is the
+    final authentication string.
+
+    If C<ntlm_reset()> is called, then the next call to C<ntlm()> will
+    start the process again allowing multiple authentications within
+    an application.
 
 =back
 
@@ -69,14 +98,14 @@ L<perl>, L<Mail::IMAPClient>
 
 =cut
 
-$VERSION = "1.00";
+$VERSION = "1.01";
 @ISA = qw(Exporter);
-@EXPORT = qw(ntlm ntlm_user ntlm_password);
+@EXPORT = qw(ntlm ntlm_domain ntlm_user ntlm_password ntlm_reset);
 @EXPORT_OK = ();
 
 my $domain = "";
 my $user = "";
-my $password;
+my $password = "";
 
 my $str_hdr = "vvV";
 my $hdr_len = 8;
@@ -95,6 +124,15 @@ my $msg3_hlen = 12 + ($hdr_len*6) + 4;
 
 my $state = 0;
 
+sub ntlm_domain
+{
+  if (@_)
+  {
+    $domain = shift;
+  }
+  return $domain;
+}
+
 sub ntlm_user
 {
   if (@_)
@@ -111,6 +149,11 @@ sub ntlm_password
     $password = shift;
   }
   return $password;
+}
+
+sub ntlm_reset
+{
+  $state = 0;
 }
 
 sub ntlm
