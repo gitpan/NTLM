@@ -5,15 +5,14 @@
 # encryption and is, hence, not a cypher and does not appear to come
 # under any export restrictions on such.
 #
-package Auth::NTLMdes;
+package Authen::NTLM::DES;
 
-use vars qw($VERSION, @ISA, @EXPORT, @EXPORT_OK);
+use vars qw($VERSION @ISA @EXPORT);
 require Exporter;
 
-$VERSION = "1.00";
+$VERSION = "1.02";
 @ISA = qw(Exporter);
 @EXPORT = qw(E_P16 E_P24);
-@EXPORT_OK = ();
 
 my ($loop, $loop2);
 $loop = 0;

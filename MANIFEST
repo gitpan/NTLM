@@ -7,3 +7,4 @@ DES/DES.pm
 DES/Makefile.PL
 MD4/MD4.pm
 MD4/Makefile.PL
+t/ntlm.t

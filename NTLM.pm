@@ -5,7 +5,7 @@ use Authen::NTLM::DES;
 use Authen::NTLM::MD4;
 use MIME::Base64;
 
-use vars qw($VERSION, @ISA, @EXPORT, @EXPORT_OK);
+use vars qw($VERSION @ISA @EXPORT);
 require Exporter;
 
 =head1 NAME
@@ -98,10 +98,9 @@ L<perl>, L<Mail::IMAPClient>
 
 =cut
 
-$VERSION = "1.01";
+$VERSION = "1.02";
 @ISA = qw(Exporter);
 @EXPORT = qw(ntlm ntlm_domain ntlm_user ntlm_password ntlm_reset);
-@EXPORT_OK = ();
 
 my $domain = "";
 my $user = "";
@@ -163,7 +162,7 @@ sub ntlm
   my ($flags, $user_hdr, $domain_hdr,
       $u_off, $d_off, $c_info, $lmResp, $ntResp, $lm_hdr,
       $nt_hdr, $wks_hdr, $session_hdr, $lm_off, $nt_off,
-      $wks_off, $s_off, $domain, $u_user);
+      $wks_off, $s_off, $u_user);
   my $response;
   if ($state)
   {

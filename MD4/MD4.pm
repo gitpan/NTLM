@@ -16,15 +16,14 @@
 # of this implementation
 #
 
-package Auth::NTLMmd4;
+package Authen::NTLM::MD4;
 
-use vars qw($VERSION, @ISA, @EXPORT, @EXPORT_OK);
+use vars qw($VERSION @ISA @EXPORT);
 require Exporter;
 
-$VERSION = "1.00";
+$VERSION = "1.02";
 @ISA = qw(Exporter);
 @EXPORT = qw(mdfour);
-@EXPORT_OK = ();
 
 my ($A, $B, $C, $D);
 my (@X, $M);

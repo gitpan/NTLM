@@ -22,6 +22,7 @@ To install this application:
 
    perl Makefile.PL
    make
+   make test
    make install
 
 DEPENDENCIES
