@@ -1,0 +1,48 @@
+NTLM Authentication Scheme
+==========================
+
+This module implements the NTLM authentication mechanism.  It can be
+used to perform NTLM style authentication for any desired protocol.
+
+The module works well with the Mail::IMAPClient module in the
+"authenticate" method, however I had to make a change to that method
+for it to work.  The following line (2511 in version 2.1.4):
+
+			($code) = $o->[DATA] =~ /^\+ (.*)$/ ;
+
+needed to be changed to:
+
+			($code) = $o->[DATA] =~ /^\+(.*)$/ ;
+
+as the initial NTLM challenge is empty.
+
+INSTALLATION
+
+To install this application:
+
+   perl Makefile.PL
+   make
+   make install
+
+DEPENDENCIES
+
+This module requires the MIME::Base64 module
+
+COPYRIGHT AND LICENCE
+
+This application is free software.  This code is distributed in the hope that
+it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  You may freely use,
+copy and distribute this software as long as all copyright notices, including
+this notice, remain intact and that you do not try to claim it as your own or
+try to sell it.  You may alter the code as long as you send me any diffs (this
+will ensure that you have an easier time of it when you upgrade ;).
+
+Perl port of this code is Copyright (C) 2001 Mark Bush.
+<Mark.Bush@bushnet.demon.co.uk>
+
+The code is based on fetchmail code which is Copyright (C) 1997 Eric
+S. Raymond.
+
+Fetchmail uses SMB/Netbios code from samba which is Copyright (C)
+Andrew Tridgell 1992-1998 with modifications from Jeremy Allison.
