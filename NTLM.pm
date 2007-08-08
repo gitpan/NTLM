@@ -55,7 +55,7 @@ Authen::NTLM - An NTLM authentication module
     Returns the new username.  Without an argument, this function
     returns the current username entry.
 
-=item ntlm_passwd()
+=item ntlm_password()
 
     Set the password to use in the NTLM authentication messages.
     Returns the new password.  Without an argument, this function
@@ -88,17 +88,21 @@ Authen::NTLM - An NTLM authentication module
 
 =head1 AUTHOR
 
+    David (Buzz) Bussenschutt <davidbuzz@gmail.com> - current maintainer
     Mark Bush <Mark.Bush@bushnet.demon.co.uk> - perl port
     Eric S. Raymond - author of fetchmail
     Andrew Tridgell and Jeremy Allison for SMB/Netbios code
 
 =head1 SEE ALSO
 
-L<perl>, L<Mail::IMAPClient>
+L<perl>, L<Mail::IMAPClient>, L<LWP::Authen::Ntlm> 
 
+=head1 HISTORY
+    1.03 - fixes long-standing 1 line bug L<http://rt.cpan.org/Public/Bug/Display.html?id=9521> - released by David Bussenschutt 9th Aug 2007 
+    1.02 - released by Mark Bush 29th Oct 2001
 =cut
 
-$VERSION = "1.02";
+$VERSION = "1.03";
 @ISA = qw(Exporter);
 @EXPORT = qw(ntlm ntlm_domain ntlm_user ntlm_password ntlm_reset);
 
@@ -170,7 +174,7 @@ sub ntlm
     $challenge = decode_base64($challenge);
     $c_info = &decode_challenge($challenge);
     $u_user = &unicode($user);
-    $domain = substr($c_info->{buffer}, 0, $c_info->{domain}{len});
+    $domain = substr($challenge, $c_info->{domain}{offset}, $c_info->{domain}{len}); 
     $response = pack($msg3, $ident, 3);
     $lmResp = &lmEncrypt($c_info->{data});
     $ntResp = &ntEncrypt($c_info->{data});
