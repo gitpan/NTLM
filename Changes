@@ -1,5 +1,8 @@
 Revision history for Perl NTLM authentication suite
 
+1.04 29 May 2008
+	- implement NTLMv2 - thanks to Andrew Hobson <ahobson@infloop.com> 
+
 1.03 Thur Aug 09 09:13:00 2007
 	- fixes bug from 2001 - http://rt.cpan.org/Public/Bug/Display.html?id=9521 
 	- fixes minor doco bug also reported in same place.

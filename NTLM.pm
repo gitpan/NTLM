@@ -1,9 +1,11 @@
 #!/usr/local/bin/perl
 
 package Authen::NTLM;
+use strict;
 use Authen::NTLM::DES;
 use Authen::NTLM::MD4;
 use MIME::Base64;
+use Digest::HMAC_MD5;
 
 use vars qw($VERSION @ISA @EXPORT);
 require Exporter;
@@ -24,6 +26,15 @@ Authen::NTLM - An NTLM authentication module
     $imap->logout;
     ntlm_reset;
     :
+
+    or
+
+    ntlmv2(1);
+    ntlm_user($username);
+    ntlm_host($host);
+    ntlm_password($password);
+    :
+
 
 =head1 DESCRIPTION
 
@@ -84,11 +95,17 @@ Authen::NTLM - An NTLM authentication module
     start the process again allowing multiple authentications within
     an application.
 
+=item ntlmv2
+
+    Use NTLM v2 authentication.
+
 =back
 
 =head1 AUTHOR
 
     David (Buzz) Bussenschutt <davidbuzz@gmail.com> - current maintainer
+    Dmitry Karasik <dmitry@karasik.eu.org> - nice ntlmv2 patch
+    Andrew Hobson <ahobson@infloop.com> - initial ntlmv2 code
     Mark Bush <Mark.Bush@bushnet.demon.co.uk> - perl port
     Eric S. Raymond - author of fetchmail
     Andrew Tridgell and Jeremy Allison for SMB/Netbios code
@@ -98,13 +115,15 @@ Authen::NTLM - An NTLM authentication module
 L<perl>, L<Mail::IMAPClient>, L<LWP::Authen::Ntlm> 
 
 =head1 HISTORY
+    1.04 - implementation of NTLMv2 by Andrew Hobson/Dmitry Karasik 
     1.03 - fixes long-standing 1 line bug L<http://rt.cpan.org/Public/Bug/Display.html?id=9521> - released by David Bussenschutt 9th Aug 2007 
     1.02 - released by Mark Bush 29th Oct 2001
+
 =cut
 
-$VERSION = "1.03";
+$VERSION = "1.04";
 @ISA = qw(Exporter);
-@EXPORT = qw(ntlm ntlm_domain ntlm_user ntlm_password ntlm_reset);
+@EXPORT = qw(ntlm ntlm_domain ntlm_user ntlm_password ntlm_reset ntlm_host ntlmv2);
 
 my $domain = "";
 my $user = "";
@@ -126,6 +145,19 @@ my $msg3_tl = "V";
 my $msg3_hlen = 12 + ($hdr_len*6) + 4;
 
 my $state = 0;
+
+my $host = "";
+my $ntlm_v2 = 0;
+my $ntlm_v2_msg3_flags = 0x88205;
+
+
+# Domain Name supplied on negotiate
+use constant NTLMSSP_NEGOTIATE_OEM_DOMAIN_SUPPLIED      => 0x00001000;
+# Workstation Name supplied on negotiate
+use constant NTLMSSP_NEGOTIATE_OEM_WORKSTATION_SUPPLIED => 0x00002000;
+# Try to use NTLMv2
+use constant NTLMSSP_NEGOTIATE_NTLM2                    => 0x00080000;
+
 
 sub ntlm_domain
 {
@@ -159,6 +191,21 @@ sub ntlm_reset
   $state = 0;
 }
 
+sub ntlmv2
+{
+  if (@_) {
+    $ntlm_v2 = shift;
+  }
+  return $ntlm_v2;
+}
+
+sub ntlm_host {
+  if (@_) {
+    $host = shift;
+  }
+  return $host;
+}
+
 sub ntlm
 {
   my ($challenge) = @_;
@@ -166,43 +213,62 @@ sub ntlm
   my ($flags, $user_hdr, $domain_hdr,
       $u_off, $d_off, $c_info, $lmResp, $ntResp, $lm_hdr,
       $nt_hdr, $wks_hdr, $session_hdr, $lm_off, $nt_off,
-      $wks_off, $s_off, $u_user);
+      $wks_off, $s_off, $u_user, $msg1_host, $host_hdr, $u_host);
   my $response;
   if ($state)
   {
+
     $challenge =~ s/^\s*//;
     $challenge = decode_base64($challenge);
     $c_info = &decode_challenge($challenge);
     $u_user = &unicode($user);
-    $domain = substr($challenge, $c_info->{domain}{offset}, $c_info->{domain}{len}); 
+    if (!$ntlm_v2) {
+      $domain = substr($challenge, $c_info->{domain}{offset}, $c_info->{domain}{len}); 
+      $lmResp = &lmEncrypt($c_info->{data});
+      $ntResp = &ntEncrypt($c_info->{data});
+      $flags = pack($msg3_tl, $c_info->{flags});
+    } else {
+      $lmResp = &lmv2Encrypt($c_info->{data});
+      $ntResp = &ntv2Encrypt($c_info->{data}, $c_info->{target_data});
+      $flags = pack($msg3_tl, $ntlm_v2_msg3_flags);
+    }
+    $u_host = &unicode(($host ? $host : $user));
     $response = pack($msg3, $ident, 3);
-    $lmResp = &lmEncrypt($c_info->{data});
-    $ntResp = &ntEncrypt($c_info->{data});
+
     $lm_off = $msg3_hlen;
     $nt_off = $lm_off + length($lmResp);
     $d_off = $nt_off + length($ntResp);
     $u_off = $d_off + length($domain);
     $wks_off = $u_off + length($u_user);
-    $s_off = $wks_off + length($u_user);
+    $s_off = $wks_off + length($u_host);
     $lm_hdr = &hdr($lmResp, $msg3_hlen, $lm_off);
     $nt_hdr = &hdr($ntResp, $msg3_hlen, $nt_off);
     $domain_hdr = &hdr($domain, $msg3_hlen, $d_off);
     $user_hdr = &hdr($u_user, $msg3_hlen, $u_off);
-    $wks_hdr = &hdr($u_user, $msg3_hlen, $wks_off);
+    $wks_hdr = &hdr($u_host, $msg3_hlen, $wks_off);
     $session_hdr = &hdr("", $msg3_hlen, $s_off);
-    $flags = pack($msg3_tl, $c_info->{flags});
     $response .= $lm_hdr . $nt_hdr . $domain_hdr . $user_hdr .
                  $wks_hdr . $session_hdr . $flags .
-		 $lmResp . $ntResp . $domain . $u_user . $u_user;
+		 $lmResp . $ntResp . $domain . $u_user . $u_host;
   }
   else # first response;
   {
+    if (!length $domain) {
+      $msg1_f ^= NTLMSSP_NEGOTIATE_OEM_DOMAIN_SUPPLIED;
+    }
+    $msg1_host = $user;
+    if ($ntlm_v2) {
+      $msg1_f ^= NTLMSSP_NEGOTIATE_OEM_WORKSTATION_SUPPLIED;
+      $msg1_f |= NTLMSSP_NEGOTIATE_NTLM2;
+      $msg1_host = "";
+    }
+
     $response = pack($msg1, $ident, 1, $msg1_f);
     $u_off = $msg1_hlen;
-    $d_off = $u_off + length($user);
-    $user_hdr = &hdr($user, $msg1_hlen, $u_off);
+    $d_off = $u_off + length($msg1_host);
+    $host_hdr = &hdr($msg1_host, $msg1_hlen, $u_off);
     $domain_hdr = &hdr($domain, $msg1_hlen, $d_off);
-    $response .= $user_hdr . $domain_hdr . $user . $domain;
+    $response .= $host_hdr . $domain_hdr . $msg1_host . $domain;
     $state = 1;
   }
   return encode_base64($response, "");
@@ -231,6 +297,8 @@ sub decode_challenge
 
   my $res;
   my (@res, @hdr);
+  my $original = $challenge;
+
   $res->{buffer} = substr($challenge, $msg2_hlen);
   $challenge = substr($challenge, 0, $msg2_hlen);
   @res = unpack($msg2, $challenge);
@@ -244,13 +312,19 @@ sub decode_challenge
   $res->{data} = $res[4];
   $res->{reserved} = $res[5];
   $res->{empty_hdr} = $res[6];
+  @hdr = unpack($str_hdr, $res[6]);
+  $res->{target}{len} = $hdr[0];
+  $res->{target}{maxlen} = $hdr[1];
+  $res->{target}{offset} = $hdr[2];
+  $res->{target_data} = substr($original, $hdr[2], $hdr[1]);
+
   return $res;
 }
 
 sub unicode
 {
   my ($string) = @_;
-  my ($reply, $c, $z);
+  my ($reply, $c, $z) = ('');
 
   $z = sprintf "%c", 0;
   foreach $c (split //, $string)
@@ -300,6 +374,65 @@ sub E_md4hash
   my $wpwd = &NTunicode($password);
   my $p16 = mdfour($wpwd);
   return $p16;
+}
+
+sub lmv2Encrypt {
+  my ($data) = @_;
+
+  my $u_pass = &unicode($password);
+  my $ntlm_hash = mdfour($u_pass);
+
+  my $u_user = &unicode("\U$user\E");
+  my $u_domain = &unicode("$domain");
+  my $concat = $u_user . $u_domain;
+
+  my $hmac = Digest::HMAC_MD5->new($ntlm_hash);
+  $hmac->add($concat);
+  my $ntlm_v2_hash = $hmac->digest;
+
+  # Firefox seems to use this as its random challenge
+  my $random_challenge = "\0" x 8;
+
+  my $concat2 = $data . $random_challenge;
+
+  $hmac = Digest::HMAC_MD5->new($ntlm_v2_hash);
+  $hmac->add(substr($data, 0, 8) . $random_challenge);
+  my $r = $hmac->digest . $random_challenge;
+
+  return $r;
+}
+
+sub ntv2Encrypt {
+  my ($data, $target) = @_;
+
+  my $u_pass = &unicode($password);
+  my $ntlm_hash = mdfour($u_pass);
+
+  my $u_user = &unicode("\U$user\E");
+  my $u_domain = &unicode("$domain");
+  my $concat = $u_user . $u_domain;
+
+  my $hmac = Digest::HMAC_MD5->new($ntlm_hash);
+  $hmac->add($concat);
+  my $ntlm_v2_hash = $hmac->digest;
+
+  my $zero_long = "\000" x 4;
+  my $sig = pack("H8", "01010000");
+  my $time = pack("VV", (time + 11644473600) + 10000000);
+  my $rand = "\0" x 8;
+  my $blob = $sig . $zero_long . $time . $rand . $zero_long .
+      $target . $zero_long;
+
+  $concat = $data . $blob;
+
+  $hmac = Digest::HMAC_MD5->new($ntlm_v2_hash);
+  $hmac->add($concat);
+
+  my $d = $hmac->digest;
+
+  my $r = $d . $blob;
+
+  return $r;
 }
 
 1;

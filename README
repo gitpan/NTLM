@@ -23,8 +23,8 @@ Example use is like this(note the fact that NTLM.pm is NOT explicitly used!):
 
     use WWW::Mechanize;
     $mech = WWW::Mechanize->new(keep_alive=>1);
-    $mech->no_proxy('prd-s03');
-    $mech->credentials('prd-s03:80', '', "my_domain\\my_user", my_pass); 
+    $mech->no_proxy('my.server'); 
+    $mech->credentials('my.server:80', '', "my_domain\\my_user", my_pass);
     $response = $mech->get( $url  );
 
 
@@ -39,7 +39,7 @@ To install this application:
 
 DEPENDENCIES
 
-This module requires the MIME::Base64 module
+This module requires the MIME::Base64 module, and Digest::HMAC_MD5
 
 COPYRIGHT AND LICENCE
 
