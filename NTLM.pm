@@ -27,13 +27,27 @@ Authen::NTLM - An NTLM authentication module
     ntlm_reset;
     :
 
-    or
+or
 
     ntlmv2(1);
     ntlm_user($username);
     ntlm_host($host);
     ntlm_password($password);
     :
+
+or
+
+    my $ntlm = Authen::NTLM-> new(
+        host     => $host,
+        user     => $username,
+        domain   => $domain,
+        password => $password,
+        version  => 1,
+    );
+    $ntlm-> challenge;
+    :
+    $ntlm-> challenge($challenge);
+
 
 
 =head1 DESCRIPTION
@@ -85,7 +99,7 @@ Authen::NTLM - An NTLM authentication module
     The first call to C<ntlm()> generates this first message ignoring
     any arguments.
 
-    The second time it is called, it is assumend that the argument is
+    The second time it is called, it is assumed that the argument is
     the challenge string sent from the server.  This will contain 8
     bytes of data which are used in the DES functions to generate the
     response authentication strings.  The result of the call is the
@@ -95,16 +109,34 @@ Authen::NTLM - An NTLM authentication module
     start the process again allowing multiple authentications within
     an application.
 
-=item ntlmv2
+=item ntlmv2()
 
     Use NTLM v2 authentication.
+
+=back
+
+=head2 OBJECT API
+
+=over
+
+=item new %options
+
+Creates an object that accepts the following options: C<user>, C<host>,
+C<domain>, C<password>, C<version>.
+
+=item challenge [$challenge]
+
+If C<$challenge> is not supplied, first-stage challenge string is generated.
+Otherwise, the third-stage challenge is generated, where C<$challenge> is
+assumed to be extracted from the second stage of NTLM exchange. The result of
+the call is the final authentication string.
 
 =back
 
 =head1 AUTHOR
 
     David (Buzz) Bussenschutt <davidbuzz@gmail.com> - current maintainer
-    Dmitry Karasik <dmitry@karasik.eu.org> - nice ntlmv2 patch
+    Dmitry Karasik <dmitry@karasik.eu.org> - nice ntlmv2 patch, OO extensions.
     Andrew Hobson <ahobson@infloop.com> - initial ntlmv2 code
     Mark Bush <Mark.Bush@bushnet.demon.co.uk> - perl port
     Eric S. Raymond - author of fetchmail
@@ -115,13 +147,15 @@ Authen::NTLM - An NTLM authentication module
 L<perl>, L<Mail::IMAPClient>, L<LWP::Authen::Ntlm> 
 
 =head1 HISTORY
+
+    1.05 - add OO interface by Dmitry Karasik
     1.04 - implementation of NTLMv2 by Andrew Hobson/Dmitry Karasik 
     1.03 - fixes long-standing 1 line bug L<http://rt.cpan.org/Public/Bug/Display.html?id=9521> - released by David Bussenschutt 9th Aug 2007 
     1.02 - released by Mark Bush 29th Oct 2001
 
 =cut
 
-$VERSION = "1.04";
+$VERSION = "1.05";
 @ISA = qw(Exporter);
 @EXPORT = qw(ntlm ntlm_domain ntlm_user ntlm_password ntlm_reset ntlm_host ntlmv2);
 
@@ -158,6 +192,32 @@ use constant NTLMSSP_NEGOTIATE_OEM_WORKSTATION_SUPPLIED => 0x00002000;
 # Try to use NTLMv2
 use constant NTLMSSP_NEGOTIATE_NTLM2                    => 0x00080000;
 
+
+# Object API
+
+sub new
+{
+   my ( $class, %opt) = @_;
+   for (qw(domain user password host)) {
+      $opt{$_} = "" unless defined $opt{$_};
+   }
+   $opt{version} ||= 1;
+   return bless { %opt }, $class;
+}
+
+sub challenge
+{
+   my ( $self, $challenge) = @_;
+   $state = defined $challenge;
+   ($user,$domain,$password,$host) = @{$self}{qw(user domain password host)};
+   $ntlm_v2 = ($self-> {version} > 1) ? 1 : 0;
+   return ntlm($challenge);
+}
+
+eval "sub $_ { \$#_ ? \$_[0]->{$_} = \$_[1] : \$_[0]->{$_} }"
+   for qw(user domain password host version);
+
+# Function API
 
 sub ntlm_domain
 {
@@ -253,17 +313,18 @@ sub ntlm
   }
   else # first response;
   {
+    my $f = $msg1_f;
     if (!length $domain) {
-      $msg1_f ^= NTLMSSP_NEGOTIATE_OEM_DOMAIN_SUPPLIED;
+      $f &= ~NTLMSSP_NEGOTIATE_OEM_DOMAIN_SUPPLIED;
     }
     $msg1_host = $user;
     if ($ntlm_v2) {
-      $msg1_f ^= NTLMSSP_NEGOTIATE_OEM_WORKSTATION_SUPPLIED;
-      $msg1_f |= NTLMSSP_NEGOTIATE_NTLM2;
+      $f &= ~NTLMSSP_NEGOTIATE_OEM_WORKSTATION_SUPPLIED;
+      $f |= NTLMSSP_NEGOTIATE_NTLM2;
       $msg1_host = "";
     }
 
-    $response = pack($msg1, $ident, 1, $msg1_f);
+    $response = pack($msg1, $ident, 1, $f);
     $u_off = $msg1_hlen;
     $d_off = $u_off + length($msg1_host);
     $host_hdr = &hdr($msg1_host, $msg1_hlen, $u_off);

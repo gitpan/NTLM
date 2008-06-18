@@ -1,5 +1,9 @@
 Revision history for Perl NTLM authentication suite
 
+1.05 19 Jun 2008
+	- implement OO interface  - thanks to Dmitry Karasik <dmitry@karasik.eu.org>
+	- fix minor bug in last release - thanks to Dmitry Karasik <dmitry@karasik.eu.org>
+
 1.04 29 May 2008
 	- implement NTLMv2 - thanks to Andrew Hobson <ahobson@infloop.com> 
 
