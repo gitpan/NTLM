@@ -1,5 +1,8 @@
 Revision history for Perl NTLM authentication suite
 
+1.06 24 Mar 2011
+	- relicense as GPL+ or Artistic
+
 1.05 19 Jun 2008
 	- implement OO interface  - thanks to Dmitry Karasik <dmitry@karasik.eu.org>
 	- fix minor bug in last release - thanks to Dmitry Karasik <dmitry@karasik.eu.org>

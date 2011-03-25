@@ -1,0 +1,114 @@
+Return-Path: <davidbuzz@gmail.com>
+X-Spam-Checker-Version: SpamAssassin 3.3.2-r929478 (2010-03-31) on
+     delta.bebout.net
+X-Spam-Level:
+X-Spam-Status: No, score=-2.7 required=5.0 tests=BAYES_00,DKIM_SIGNED,
+     DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FROM,HTML_MESSAGE,RCVD_IN_DNSWL_LOW
+     autolearn=ham version=3.3.2-r929478
+X-Spam-Report:
+     * 0.0 FREEMAIL_FROM Sender email is freemail (davidbuzz[at]gmail.com)
+     * -0.7 RCVD_IN_DNSWL_LOW RBL: Sender listed at http://www.dnswl.org/, low
+     * trust
+     * [74.125.82.182 listed in list.dnswl.org]
+     * -1.9 BAYES_00 BODY: Bayes spam probability is 0 to 1%
+     * [score: 0.0000]
+     * 0.0 HTML_MESSAGE BODY: HTML included in message
+     * -0.1 DKIM_VALID_AU Message has a valid DKIM or DK signature from author's
+     * domain
+     * 0.1 DKIM_SIGNED Message has a DKIM or DK signature, not necessarily
+     * valid
+     * -0.1 DKIM_VALID Message has at least one valid DKIM or DK signature
+X-Spam-Bayes: level: 0.0000 autolearn: ham
+X-Original-To: nick@bebout.net
+Delivered-To: nb@delta.bebout.net
+Received: from bastion.fedoraproject.org (bastion02.fedoraproject.org [209.132.181.3])
+     by delta.bebout.net (Postfix) with ESMTP id 1373333A841
+     for <nick@bebout.net>; Tue, 1 Mar 2011 00:19:16 +0000 (UTC)
+Authentication-Results: delta.bebout.net; dkim=pass (1024-bit key)
+     header.i=@gmail.com; x-dkim-adsp=none
+Received: by bastion02.phx2.fedoraproject.org (Postfix)
+     id 1C5F7110644; Tue, 1 Mar 2011 00:18:45 +0000 (UTC)
+Delivered-To: nb@fedoraproject.org
+Received: from mx1.redhat.com (ext-mx14.extmail.prod.ext.phx2.redhat.com [10.5.110.19])
+     by bastion02.phx2.fedoraproject.org (Postfix) with ESMTP id 187DC10FBEE
+     for <nb@fedoraproject.org>; Tue, 1 Mar 2011 00:18:45 +0000 (UTC)
+Received: from mail-wy0-f182.google.com (mail-wy0-f182.google.com [74.125.82.182])
+     by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p210IY8o022913
+     for <nb@fedoraproject.org>; Mon, 28 Feb 2011 19:18:34 -0500
+Received: by wyb32 with SMTP id 32so4853504wyb.41
+     for <nb@fedoraproject.org>; Mon, 28 Feb 2011 16:18:33 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+     d=gmail.com; s=gamma;
+     h=domainkey-signature:mime-version:reply-to:in-reply-to:references
+     :date:message-id:subject:from:to:content-type;
+     bh=j7XnRdTkpe58U71fT2M+9RkQD7+tZnhEJnv/mCnEx0E=;
+     b=mSzDGgriaDIczbM5lQBf4CUlhSTN1V4X8QJqdtcwHFnwNhJYJYBFnfPj2JNwUwIpFR
+     56hUwH77akPFWXBiWEJXVem1kM0pcBdI/mqoAMkIyxmTny/Jt0Qp6hZcFbhjFYCN+/HC
+     Nlg4ALq2ttvNqpf9M6iOCd5HuY39UK/5PydE8=
+DomainKey-Signature: a=rsa-sha1; c=nofws;
+     d=gmail.com; s=gamma;
+     h=mime-version:reply-to:in-reply-to:references:date:message-id
+     :subject:from:to:content-type;
+     b=HM3NysZ9P0Mw33LiomCvMXU0YN4gkNBoFPtIqjaUr8drHU9QbS8ePUthQ5QOBmUjat
+     H1x7ndyIcD3SQpCxPQZZjJ4lnQ4KEXatnSY2c28LwAmIdJsPrKJqvuHv5ioHo+jbrAgy
+     WS0Kd0KZPAXDNyYfV9layrJVU13V/NMJ2Ferg=
+MIME-Version: 1.0
+Received: by 10.216.170.213 with SMTP id p63mr2879295wel.37.1298938713809;
+     Mon, 28 Feb 2011 16:18:33 -0800 (PST)
+Received: by 10.216.120.212 with HTTP; Mon, 28 Feb 2011 16:18:33 -0800 (PST)
+Received: by 10.216.120.212 with HTTP; Mon, 28 Feb 2011 16:18:33 -0800 (PST)
+Reply-To: davidbuzz@gmail.com
+In-Reply-To: <3609a9ec62a41111142ddea4be5d5b41.squirrel@mail.bebout.net>
+References: <5af5394b87b31e813c84391a10e8af4a.squirrel@mail.bebout.net>
+     <AANLkTinGDJZBzOigNhuHBh1_04Sa2O4u+1C+PDqXEwn9@mail.gmail.com>
+     <3609a9ec62a41111142ddea4be5d5b41.squirrel@mail.bebout.net>
+Date: Tue, 1 Mar 2011 10:18:33 +1000
+Message-ID: <AANLkTikPGrSCAHTe1X0CG5s3ZH0yq1aHah1QPVE8WJAa@mail.gmail.com>
+Subject: Re: Authen::NTLM License
+From: buzz <davidbuzz@gmail.com>
+To: Nick Bebout <nb@fedoraproject.org>
+Content-Type: multipart/alternative; boundary=0016363ba6669f2ba5049d60bccc
+X-RedHat-Spam-Score: -0.798 (DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FROM,HTML_MESSAGE,RCVD_IN_DNSWL_LOW)
+X-Scanned-By: MIMEDefang 2.68 on 10.5.110.19
+X-Virus-Scanned: clamav-milter 0.96.5 at delta.bebout.net
+X-Virus-Status: Clean
+        
+That is acceptable, thanks
+On Mar 1, 2011 6:30 AM, "Nick Bebout" <nb@fedoraproject.org> wrote:
+> Could you please let me know which license? If you don't have a
+> preference, I would suggest "GPL+ or Artistic" which means it is licensed
+> under the same terms as perl itself, which means that people may use it
+> under the GNU General Public License or under the Artistic license,
+> whichever they prefer.
+>
+> If you can email me back and say that this is acceptable to you, I can get
+> this module packaged for Fedora.
+>
+> Thank you,
+>
+> Nick
+>
+> --
+> Nick Bebout
+> Fedora Project
+> nb@fedoraproject.org
+>
+>> yes.
+>>
+>> On Thu, Feb 17, 2011 at 5:57 AM, Nick Bebout <nb@fedoraproject.org>
+wrote:
+>>> Hi, I'm a Fedora developer and would like to package NTLM (Authen::NTLM)
+>>> for Fedora, however, currently I am unable to do so due to the license.
+>>> Would there be any chance you would consider licensing it under one of
+>>> the
+>>> licenses at http://fedoraproject.org/wiki/Licensing#Good_Licenses
+>>>
+>>> Nick
+>>>
+>>> --
+>>> Nick Bebout
+>>> Fedora Project
+>>> nb@fedoraproject.org
+>>>
+>>>
+>>

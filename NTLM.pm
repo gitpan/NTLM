@@ -148,6 +148,7 @@ L<perl>, L<Mail::IMAPClient>, L<LWP::Authen::Ntlm>
 
 =head1 HISTORY
 
+    1.06 - relicense as GPL+ or Artistic
     1.05 - add OO interface by Dmitry Karasik
     1.04 - implementation of NTLMv2 by Andrew Hobson/Dmitry Karasik 
     1.03 - fixes long-standing 1 line bug L<http://rt.cpan.org/Public/Bug/Display.html?id=9521> - released by David Bussenschutt 9th Aug 2007 
@@ -155,7 +156,7 @@ L<perl>, L<Mail::IMAPClient>, L<LWP::Authen::Ntlm>
 
 =cut
 
-$VERSION = "1.05";
+$VERSION = "1.06";
 @ISA = qw(Exporter);
 @EXPORT = qw(ntlm ntlm_domain ntlm_user ntlm_password ntlm_reset ntlm_host ntlmv2);
 
