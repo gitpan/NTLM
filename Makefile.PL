@@ -6,7 +6,6 @@ use ExtUtils::MakeMaker;
 
 WriteMakefile(
     'NAME'		=> 'Authen::NTLM',
-    'LICENSE'           => 'perl',
     'DIR'		=> ['DES', 'MD4'],
     'VERSION_FROM'	=> 'NTLM.pm',
     'PREREQ_PM' => { 'MIME::Base64' => 0, 'Digest::HMAC_MD5' => 0 },

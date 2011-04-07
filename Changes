@@ -1,10 +1,9 @@
 Revision history for Perl NTLM authentication suite
 
-1.07 6 Apr 2011
-	- fixes ticket 39925
-        - Access null strings in decode_challenge
-	- fixes ticket 9521
-        - Authentication to IIS 5.0 server fails repeatedly with 401 errors
+1.08 - 6 Apr 2011
+	- fix CPAN ticket # 39925
+
+1.07 - not released
 
 1.06 24 Mar 2011
 	- relicense as GPL+ or Artistic

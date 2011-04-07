@@ -148,7 +148,8 @@ L<perl>, L<Mail::IMAPClient>, L<LWP::Authen::Ntlm>
 
 =head1 HISTORY
 
-    1.07 - fix tickets 9521 and 39925
+    1.08 - fix CPAN ticket # 39925
+    1.07 - not publicly released
     1.06 - relicense as GPL+ or Artistic
     1.05 - add OO interface by Dmitry Karasik
     1.04 - implementation of NTLMv2 by Andrew Hobson/Dmitry Karasik 
@@ -157,7 +158,7 @@ L<perl>, L<Mail::IMAPClient>, L<LWP::Authen::Ntlm>
 
 =cut
 
-$VERSION = "1.07";
+$VERSION = "1.08";
 @ISA = qw(Exporter);
 @EXPORT = qw(ntlm ntlm_domain ntlm_user ntlm_password ntlm_reset ntlm_host ntlmv2);
 
@@ -285,7 +286,7 @@ sub ntlm
     $c_info = &decode_challenge($challenge);
     $u_user = &unicode($user);
     if (!$ntlm_v2) {
-      $domain = &unicode($domain);
+      $domain = substr($challenge, $c_info->{domain}{offset}, $c_info->{domain}{len}); 
       $lmResp = &lmEncrypt($c_info->{data});
       $ntResp = &ntEncrypt($c_info->{data});
       $flags = pack($msg3_tl, $c_info->{flags});
@@ -364,7 +365,6 @@ sub decode_challenge
 
   $res->{buffer} = $msg2_hlen < length $challenge
   ? substr($challenge, $msg2_hlen) : '';
-
   $challenge = substr($challenge, 0, $msg2_hlen);
   @res = unpack($msg2, $challenge);
   $res->{ident} = $res[0];
@@ -377,7 +377,7 @@ sub decode_challenge
   $res->{data} = $res[4];
   $res->{reserved} = $res[5];
   $res->{empty_hdr} = $res[6];
-  @hdr = length($res[6]) ? unpack($str_hdr, $res[6]) : (0,0,0);
+  @hdr = unpack($str_hdr, $res[6]);
   $res->{target}{len} = $hdr[0];
   $res->{target}{maxlen} = $hdr[1];
   $res->{target}{offset} = $hdr[2];
