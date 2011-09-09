@@ -1,6 +1,9 @@
 Revision history for Perl NTLM authentication suite
 
-1.08 - 6 Apr 2011
+1.09 8 Sep 2011
+	- fix CPAN ticket # 70703
+
+1.08 6 Apr 2011
 	- fix CPAN ticket # 39925
 
 1.07 - not released
